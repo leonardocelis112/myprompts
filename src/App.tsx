@@ -1,40 +1,19 @@
 import * as React from "react";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import { Outlet } from "react-router";
-import { ReactRouterAppProvider } from "@toolpad/core/react-router";
-import type { Navigation } from "@toolpad/core/AppProvider";
-import theme from "../theme";
+import { HashRouter, Route, Routes } from "react-router";
+import * as ReactDOM from "react-dom/client";
+import Layout from "./layouts/dashboard";
+import HomePage from "./pages";
+import OrdersPage from "./pages/orders";
 
-const NAVIGATION: Navigation = [
-  {
-    kind: "header",
-    title: "Main items",
-  },
-  {
-    title: "Dashboard",
-    icon: <DashboardIcon />,
-  },
-  {
-    segment: "orders",
-    title: "Orders",
-    icon: <ShoppingCartIcon />,
-  },
-];
-
-const BRANDING = {
-  logo: <img src="../assets/imgs/logo.png" alt="My Prompts" />,
-  title: "My Prompts",
-};
-
-export default function App() {
-  return (
-    <ReactRouterAppProvider
-      navigation={NAVIGATION}
-      branding={BRANDING}
-      theme={theme}
-    >
-      <Outlet />
-    </ReactRouterAppProvider>
-  );
-}
+ReactDOM.createRoot(document.body).render(
+  <React.StrictMode>
+    <HashRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<HomePage />} />
+          <Route path="orders" element={<OrdersPage />} />
+        </Route>
+      </Routes>
+    </HashRouter>
+  </React.StrictMode>
+);
