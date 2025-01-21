@@ -17,32 +17,31 @@ import SettingsInputComponentIcon from "@mui/icons-material/SettingsInputCompone
 import TimerIcon from "@mui/icons-material/Timer";
 import SettingsIcon from "@mui/icons-material/Settings";
 import PhonelinkSetupIcon from "@mui/icons-material/PhonelinkSetup";
+import WorkIcon from "@mui/icons-material/Work";
+import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
+import TagIcon from "@mui/icons-material/Tag";
+import LabelIcon from "@mui/icons-material/Label";
+import useMenuStore from "../../stores/MenuStore";
+import { useNavigate } from "react-router";
 
 const categories = [
   {
     id: "Build",
     children: [
       {
-        id: "Authentication",
-        icon: <PeopleIcon />,
-        active: true,
+        id: "Projects",
+        icon: <WorkIcon />,
+        path: "/projects",
       },
-      { id: "Database", icon: <DnsRoundedIcon /> },
-      { id: "Storage", icon: <PermMediaOutlinedIcon /> },
-      { id: "Hosting", icon: <PublicIcon /> },
-      { id: "Functions", icon: <SettingsEthernetIcon /> },
-      {
-        id: "Machine learning",
-        icon: <SettingsInputComponentIcon />,
-      },
+
+      { id: "Prompts", icon: <LibraryBooksIcon />, path: "/prompts" },
+      { id: "Labels", icon: <LabelIcon />, path: "/labels" },
     ],
   },
   {
-    id: "Quality",
+    id: "Settings",
     children: [
-      { id: "Analytics", icon: <SettingsIcon /> },
-      { id: "Performance", icon: <TimerIcon /> },
-      { id: "Test Lab", icon: <PhonelinkSetupIcon /> },
+      { id: "Backup & Restore", icon: <SettingsIcon />, path: "/backups" },
     ],
   },
 ];
@@ -64,7 +63,8 @@ const itemCategory = {
 
 export default function Navigator(props: DrawerProps) {
   const { ...other } = props;
-
+  const { selectedMenu, setSelectedMenu } = useMenuStore();
+  const navigate = useNavigate();
   return (
     <Drawer variant="permanent" {...other}>
       <List disablePadding>
@@ -73,20 +73,21 @@ export default function Navigator(props: DrawerProps) {
         >
           My Prompts
         </ListItem>
-        <ListItem sx={{ ...item, ...itemCategory }}>
-          <ListItemIcon>
-            <HomeIcon />
-          </ListItemIcon>
-          <ListItemText>Project Overview</ListItemText>
-        </ListItem>
         {categories.map(({ id, children }) => (
           <Box key={id} sx={{ bgcolor: "#101F33" }}>
             <ListItem sx={{ py: 2, px: 3 }}>
               <ListItemText sx={{ color: "#fff" }}>{id}</ListItemText>
             </ListItem>
-            {children.map(({ id: childId, icon, active }) => (
+            {children.map(({ id: childId, icon, path }) => (
               <ListItem disablePadding key={childId}>
-                <ListItemButton selected={active} sx={item}>
+                <ListItemButton
+                  selected={selectedMenu === childId}
+                  sx={item}
+                  onClick={() => {
+                    setSelectedMenu(childId);
+                    navigate(path);
+                  }}
+                >
                   <ListItemIcon>{icon}</ListItemIcon>
                   <ListItemText>{childId}</ListItemText>
                 </ListItemButton>
