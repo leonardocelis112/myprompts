@@ -6,10 +6,12 @@ import BackupsPage from "./pages/BackupsPage";
 import LabelsPage from "./pages/LabelsPage";
 import PromptsPage from "./pages/PromptsPage";
 import ProjectsPage from "./pages/ProjectsPage";
+import { Toaster } from "sonner";
 
 ReactDOM.createRoot(document.body).render(
   <React.StrictMode>
     <HashRouter>
+      <Toaster position="top-right" richColors />
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<PromptsPage />} />
