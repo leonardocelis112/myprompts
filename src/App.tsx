@@ -7,7 +7,7 @@ import LabelsPage from "./pages/LabelsPage";
 import PromptsPage from "./pages/PromptsPage";
 import ProjectsPage from "./pages/ProjectsPage";
 import { Toaster } from "sonner";
-
+import PromptStudioPage from "./pages/PromptStudioPage";
 ReactDOM.createRoot(document.body).render(
   <React.StrictMode>
     <HashRouter>
@@ -16,6 +16,7 @@ ReactDOM.createRoot(document.body).render(
         <Route path="/" element={<Layout />}>
           <Route index element={<PromptsPage />} />
           <Route path="prompts" element={<PromptsPage />} />
+          <Route path="prompts-studio/:id" element={<PromptStudioPage />} />
           <Route path="labels" element={<LabelsPage />} />
           <Route path="backups" element={<BackupsPage />} />
           <Route path="projects" element={<ProjectsPage />} />

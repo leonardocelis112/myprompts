@@ -20,7 +20,10 @@ interface Prompt {
 interface PromptVersion {
   id: string;
   promptId: string;
-  version: string;
+  version: number;
+  content: string;
+  comments: string;
+  score: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,7 +31,9 @@ interface PromptVersion {
 interface Label {
   id: string;
   name: string;
-  description: string;
+  color: string;
+  type: "category" | "tag" | "status";
+  description?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -44,7 +49,7 @@ db.version(1).stores({
   projects: "++id, name, description, createdAt, updatedAt",
   prompts: "++id, name, objective, projectId, createdAt, updatedAt",
   promptVersions: "++id, promptId, version, createdAt, updatedAt",
-  labels: "++id, name, description, createdAt, updatedAt",
+  labels: "++id, name, color, type, description, createdAt, updatedAt",
 });
 
 export type { Project, Prompt, PromptVersion, Label };

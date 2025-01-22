@@ -13,15 +13,22 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { db, Project } from "../../db";
 import { toast } from "sonner";
+
 export default function ProjectsPage() {
   const [openDialog, setOpenDialog] = React.useState(false);
   const [projects, setProjects] = React.useState<Project[]>([]);
+  const [selectedProject, setSelectedProject] = React.useState<Project | null>(
+    null
+  );
+
   const handleOpenDialog = () => {
+    setSelectedProject(null);
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
+    setSelectedProject(null);
   };
 
   React.useEffect(() => {
@@ -32,37 +39,57 @@ export default function ProjectsPage() {
 
   const handleSave = async (data: { name: string; description: string }) => {
     try {
-      const newProject = {
-        id: crypto.randomUUID(),
-        name: data.name,
-        description: data.description,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      db.projects.add(newProject);
-      toast.success("Project created");
+      if (selectedProject) {
+        // Update existing project
+        const updatedProject = {
+          ...selectedProject,
+          ...data,
+          updatedAt: new Date(),
+        };
+        await db.projects.update(selectedProject.id, updatedProject);
+        setProjects(
+          projects.map((project) =>
+            project.id === selectedProject.id ? updatedProject : project
+          )
+        );
+        toast.success("Project updated");
+      } else {
+        // Create new project
+        const newProject = {
+          id: crypto.randomUUID(),
+          name: data.name,
+          description: data.description,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        await db.projects.add(newProject);
+        setProjects([...projects, newProject]);
+        toast.success("Project created");
+      }
       handleCloseDialog();
-      setProjects([...projects, newProject]);
     } catch (error) {
-      toast.error("Error creating project");
-      console.error("Error creating project:", error);
+      toast.error(
+        selectedProject ? "Error updating project" : "Error creating project"
+      );
+      console.error("Error saving project:", error);
     }
   };
 
-  function handleDeleteProject(id: string): void {
+  const handleDeleteProject = async (id: string) => {
     try {
-      db.projects.delete(id as never);
+      await db.projects.delete(id);
       setProjects(projects.filter((project) => project.id !== id));
       toast.success("Project deleted");
     } catch (error) {
       toast.error("Error deleting project");
       console.error("Error deleting project:", error);
     }
-  }
+  };
 
-  function handleEditProject(id: string): void {
+  const handleEditProject = (project: Project) => {
+    setSelectedProject(project);
     setOpenDialog(true);
-  }
+  };
 
   return (
     <>
@@ -82,7 +109,7 @@ export default function ProjectsPage() {
                   <IconButton
                     edge="end"
                     aria-label="edit"
-                    onClick={() => handleEditProject(project.id)}
+                    onClick={() => handleEditProject(project)}
                   >
                     <EditIcon />
                   </IconButton>
@@ -106,9 +133,18 @@ export default function ProjectsPage() {
       </Box>
       <ProjectFormDialog
         open={openDialog}
-        title="Create New Project"
+        title={selectedProject ? "Edit Project" : "Create New Project"}
         onClose={handleCloseDialog}
         onSave={handleSave}
+        initialData={
+          selectedProject
+            ? {
+                name: selectedProject.name,
+                description: selectedProject.description,
+              }
+            : undefined
+        }
+        saveButtonText={selectedProject ? "Update" : "Create"}
       />
     </>
   );
