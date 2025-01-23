@@ -2,9 +2,10 @@ import * as React from "react";
 import Typography from "@mui/material/Typography";
 import { Box, Button, IconButton } from "@mui/material";
 import { PromptDialogForm } from "../components/PromptDialogForm/PromptDialogForm";
+import { PromptFilters } from "../components/PromptFilters/PromptFilters";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { db, Prompt, Project } from "../../db";
+import { db, Prompt, Project, Label } from "../../db";
 import { toast } from "sonner";
 import { ReusableTable } from "../components/Table/Table";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
@@ -14,10 +15,15 @@ export default function PromptsPage() {
   const [openDialog, setOpenDialog] = React.useState(false);
   const [prompts, setPrompts] = React.useState<Prompt[]>([]);
   const [projects, setProjects] = React.useState<Project[]>([]);
+  const [labels, setLabels] = React.useState<Label[]>([]);
   const [selectedPrompt, setSelectedPrompt] = React.useState<Prompt | null>(
     null
   );
+  const [searchProject, setSearchProject] = React.useState("");
+  const [searchLabels, setSearchLabels] = React.useState<string[]>([]);
+
   const navigate = useNavigate();
+
   const handleOpenDialog = () => {
     setSelectedPrompt(null);
     setOpenDialog(true);
@@ -30,18 +36,22 @@ export default function PromptsPage() {
 
   React.useEffect(() => {
     // Load prompts and projects
-    Promise.all([db.prompts.toArray(), db.projects.toArray()]).then(
-      ([promptsData, projectsData]) => {
-        setPrompts(promptsData);
-        setProjects(projectsData);
-      }
-    );
+    Promise.all([
+      db.prompts.toArray(),
+      db.projects.toArray(),
+      db.labels.toArray(),
+    ]).then(([promptsData, projectsData, labelsData]) => {
+      setLabels(labelsData);
+      setPrompts(promptsData);
+      setProjects(projectsData);
+    });
   }, []);
 
   const handleSave = async (data: {
     name: string;
     objective: string;
     projectId: string;
+    labels: string[];
   }) => {
     try {
       if (selectedPrompt) {
@@ -70,8 +80,12 @@ export default function PromptsPage() {
           projectId: data.projectId,
           createdAt: new Date(),
           updatedAt: new Date(),
+          labels: data.labels || [],
         };
         await db.prompts.add(newPrompt);
+        newPrompt.labels = data.labels.map(
+          (label) => labels.find((l) => l.name === label)?.id
+        );
         setPrompts([...prompts, newPrompt]);
         toast.success("Prompt created");
       }
@@ -109,6 +123,27 @@ export default function PromptsPage() {
 
   const getProjectName = (projectId: string) => {
     return projects.find((p) => p.id === projectId)?.name || "Unknown Project";
+  };
+
+  const filteredPrompts = React.useMemo(() => {
+    return prompts.filter((prompt) => {
+      const matchesProject = searchProject
+        ? prompt.projectId === searchProject
+        : true;
+      const matchesLabels =
+        searchLabels.length > 0
+          ? searchLabels.every((labelId) => prompt.labels.includes(labelId))
+          : true;
+      return matchesProject && matchesLabels;
+    });
+  }, [prompts, searchProject, searchLabels]);
+
+  const handleProjectFilterChange = (projectId: string) => {
+    setSearchProject(projectId);
+  };
+
+  const handleLabelsFilterChange = (labelIds: string[]) => {
+    setSearchLabels(labelIds);
   };
 
   const columns = [
@@ -155,7 +190,7 @@ export default function PromptsPage() {
     },
   ];
 
-  const tableData = prompts.map((prompt) => ({
+  const tableData = filteredPrompts.map((prompt) => ({
     ...prompt,
     project: getProjectName(prompt.projectId),
     actions: prompt.id,
@@ -172,6 +207,13 @@ export default function PromptsPage() {
         <Typography variant="h6" sx={{ mb: 2 }}>
           Prompt List
         </Typography>
+        <PromptFilters
+          projects={projects}
+          searchProject={searchProject}
+          searchLabels={searchLabels}
+          onProjectChange={handleProjectFilterChange}
+          onLabelsChange={handleLabelsFilterChange}
+        />
         <ReusableTable columns={columns} rows={tableData} />
       </Box>
       <PromptDialogForm
@@ -186,6 +228,7 @@ export default function PromptsPage() {
                 name: selectedPrompt.name,
                 objective: selectedPrompt.objective,
                 projectId: selectedPrompt.projectId,
+                labels: selectedPrompt.labels,
               }
             : undefined
         }

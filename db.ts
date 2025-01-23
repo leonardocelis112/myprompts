@@ -12,6 +12,7 @@ interface Prompt {
   id: string;
   name: string;
   objective: string;
+  labels: string[];
   projectId: string;
   createdAt: Date;
   updatedAt: Date;

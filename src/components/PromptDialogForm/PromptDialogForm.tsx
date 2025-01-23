@@ -12,11 +12,13 @@ import {
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { Project } from "../../../db";
+import { TagSelector } from "../TagSelector/TagSelector";
 
 interface PromptFormData {
   name: string;
   objective: string;
   projectId: string;
+  labels: string[];
 }
 
 interface PromptDialogFormProps {
@@ -40,12 +42,13 @@ const validationSchema = Yup.object().shape({
     .max(500, "Objective is too long")
     .required("Objective is required"),
   projectId: Yup.string().required("Project is required"),
+  labels: Yup.array().of(Yup.string()),
 });
 
 export const PromptDialogForm: React.FC<PromptDialogFormProps> = ({
   open,
   title,
-  initialData = { name: "", objective: "", projectId: "" },
+  initialData = { name: "", objective: "", projectId: "", labels: [] },
   projects,
   onClose,
   onSave,
@@ -63,7 +66,14 @@ export const PromptDialogForm: React.FC<PromptDialogFormProps> = ({
         }}
         enableReinitialize
       >
-        {({ errors, touched, handleChange, values, isSubmitting }) => (
+        {({
+          errors,
+          touched,
+          handleChange,
+          values,
+          isSubmitting,
+          setFieldValue,
+        }) => (
           <Form>
             <DialogTitle>{title}</DialogTitle>
             <DialogContent>
@@ -107,6 +117,12 @@ export const PromptDialogForm: React.FC<PromptDialogFormProps> = ({
                   error={touched.objective && Boolean(errors.objective)}
                   helperText={touched.objective && errors.objective}
                   required
+                />
+                <TagSelector
+                  selectedTags={values.labels || []}
+                  onChange={(newTags) => setFieldValue("labels", newTags)}
+                  error={touched.labels && Boolean(errors.labels)}
+                  helperText={touched.labels && errors.labels?.toString()}
                 />
               </Stack>
             </DialogContent>
