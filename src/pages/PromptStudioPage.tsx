@@ -4,7 +4,13 @@ import React from "react";
 import { useParams } from "react-router";
 import { PromptVersionForm } from "../components/PromptVersionForm/PromptVersionForm";
 import { PromptVersionList } from "../components/PromptVersionList/PromptVersionList";
+import { ContextVariables } from "../components/ContextVariables/ContextVariables";
 import { toast } from "sonner";
+
+interface ContextVariable {
+  key: string;
+  value: string;
+}
 
 const PromptStudioPage: React.FC = () => {
   const { id } = useParams();
@@ -14,6 +20,11 @@ const PromptStudioPage: React.FC = () => {
   );
   const [selectedVersion, setSelectedVersion] =
     React.useState<PromptVersion | null>(null);
+  const [contextVariables, setContextVariables] = React.useState<
+    ContextVariable[]
+  >([{ key: "projectName", value: "" }]);
+
+  const [promptContent, setPromptContent] = React.useState("");
 
   React.useEffect(() => {
     const fetchPrompt = async () => {
@@ -29,6 +40,7 @@ const PromptStudioPage: React.FC = () => {
           .sortBy("version");
         setPromptVersions(fetchedVersions);
         setSelectedVersion(fetchedVersions[0] || null);
+        setPromptContent(fetchedVersions[0]?.content || "");
       }
     };
     fetchPrompt();
@@ -50,6 +62,14 @@ const PromptStudioPage: React.FC = () => {
     }
   };
 
+  const handleContextVariablesChange = (newVariables: ContextVariable[]) => {
+    setContextVariables(newVariables);
+  };
+
+  const handleContentChange = (newContent: string) => {
+    setPromptContent(newContent);
+  };
+
   if (!prompt) {
     return <Typography>Loading...</Typography>;
   }
@@ -68,6 +88,7 @@ const PromptStudioPage: React.FC = () => {
             promptId={prompt.id}
             currentVersion={selectedVersion?.version || 0}
             selectedVersion={selectedVersion}
+            onContentChange={handleContentChange}
             onSave={handleSaveVersion}
           />
         </Grid>
@@ -76,6 +97,11 @@ const PromptStudioPage: React.FC = () => {
           <PromptVersionList
             versions={promptVersions}
             onVersionSelect={handleVersionSelect}
+          />
+          <ContextVariables
+            content={promptContent}
+            variables={contextVariables}
+            onChange={handleContextVariablesChange}
           />
         </Grid>
       </Grid>

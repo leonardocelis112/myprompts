@@ -15,6 +15,7 @@ interface PromptVersionFormProps {
   currentVersion: number;
   selectedVersion?: PromptVersion;
   onSave: (version: PromptVersion) => void;
+  onContentChange: (content: string) => void;
 }
 
 const validationSchema = Yup.object().shape({
@@ -29,6 +30,7 @@ export const PromptVersionForm: React.FC<PromptVersionFormProps> = ({
   currentVersion,
   selectedVersion,
   onSave,
+  onContentChange,
 }) => {
   return (
     <Formik
@@ -72,7 +74,10 @@ export const PromptVersionForm: React.FC<PromptVersionFormProps> = ({
             name="content"
             value={values.content}
             fullWidth
-            onChange={handleChange}
+            onChange={(e) => {
+              handleChange(e);
+              onContentChange(e.target.value);
+            }}
             margin="normal"
             multiline
             rows={4}
