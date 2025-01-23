@@ -159,7 +159,8 @@ export default function PromptsPage() {
       label: "Created",
       minWidth: 130,
       align: "right" as const,
-      format: (value: Date) => value.toLocaleDateString(),
+      format: (value: Date) =>
+        value ? new Date(value).toLocaleDateString() : "",
     },
     {
       id: "actions",
